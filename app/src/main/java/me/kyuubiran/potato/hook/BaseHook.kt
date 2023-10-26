@@ -1,4 +1,4 @@
-package com.example.template.hook
+package me.kyuubiran.potato.hook
 
 abstract class BaseHook {
     abstract fun init()

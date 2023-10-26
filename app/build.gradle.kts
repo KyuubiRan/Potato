@@ -6,14 +6,21 @@ plugins {
 android {
     compileSdk = 33
 
-    namespace = "com.example.template"
+    namespace = "me.kyuubiran.potato"
 
     defaultConfig {
-        applicationId = "com.example.template"
+        applicationId = "me.kyuubiran.potato"
         minSdk = 24
         targetSdk = 33
         versionCode = 1
         versionName = "1.0.0"
+
+        ndk.abiFilters.apply {
+            add("armeabi-v7a")
+            add("arm64-v8a")
+//            add("x86")
+//            add("x86_64")
+        }
     }
 
     buildTypes {
@@ -24,8 +31,9 @@ android {
         }
     }
 
+
     androidResources {
-        additionalParameters("--allow-reserved-package-id", "--package-id", "0x45")
+        additionalParameters += arrayOf("--allow-reserved-package-id", "--package-id", "0x45")
     }
 
     compileOptions {
@@ -38,6 +46,8 @@ android {
 }
 
 dependencies {
-    implementation("com.github.kyuubiran:EzXHelper:2.0.6")
+    implementation("com.github.kyuubiran:EzXHelper:2.0.7")
+    implementation("org.luckypray:dexkit:2.0.0-rc7")
+
     compileOnly("de.robv.android.xposed:api:82")
 }
