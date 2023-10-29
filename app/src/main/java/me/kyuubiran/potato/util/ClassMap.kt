@@ -10,10 +10,10 @@ import org.luckypray.dexkit.DexKitBridge
 
 object ClassMap {
 
-    private val map = hashMapOf<String, Class<*>>()
+    private val map = hashMapOf<String, Class<*>?>()
 
-    // return <TagName, FullClassName>
-    val findClassEvent: HashSet<((DexKitBridge) -> Pair<String, Class<*>>)> = HashSet()
+    // <TagName, Finder>
+    val findClassEvent: HashMap<String, ((DexKitBridge) -> Class<*>)> = HashMap()
 
     private lateinit var sp: SharedPreferences
 
@@ -36,9 +36,9 @@ object ClassMap {
     private fun initClasses() {
         val editor = sp.edit()
 
-        findClassEvent.map {
+        findClassEvent.map { (tag, func) ->
             try {
-                it.invoke(MainHook.dexKit)
+                tag to func.invoke(MainHook.dexKit)
             } catch (e: Exception) {
                 Log.e("Init class failed! Cannot find class!")
                 null
@@ -56,22 +56,38 @@ object ClassMap {
         editor.apply()
     }
 
+    private fun tryFindAndCacheClass(tagName: String): Class<*>? {
+        if (!findClassEvent.contains(tagName)) {
+            Log.e("No such tag found: $tagName")
+            return null
+        }
+
+        try {
+            val c = findClassEvent[tagName]!!.invoke(MainHook.dexKit)
+            Log.d("Located class: $tagName=${c.name}")
+            map[tagName] = c
+            sp.edit().putString(tagName, c.name).apply()
+
+            return c
+        } catch (e: Exception) {
+            Log.e("Failed find class: $tagName")
+        }
+
+
+        return null
+    }
+
     fun getClass(classTag: String): Class<*>? {
         if (map.contains(classTag)) {
             Log.d("Return memory cached class: $classTag")
             return map[classTag]
         }
 
-        val className = sp.getString(classTag, null)
-        if (className == null) {
-            Log.w("No such class cache found: $classTag")
-            return null
-        }
+        val className = sp.getString(classTag, null) ?: return tryFindAndCacheClass(classTag)
 
         Log.d("Cached class found: $classTag=$className")
 
-        val clz = ClassUtils.loadClass(className)
-        Log.d("Located class: $classTag=${clz.name}")
+        val clz = ClassUtils.loadClassOrNull(className)?.also { Log.d("Located class: $classTag=${it.name}") }
         map[classTag] = clz
         return clz
     }

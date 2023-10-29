@@ -14,7 +14,7 @@ object PrivilegeManagerHook : BaseHook() {
     private const val HAS_DOWNLOAD_PRIV_METHOD_TAG = "PrivilegeManager_hasBookDownloadPrivilege"
 
     init {
-        ClassMap.findClassEvent += {
+        ClassMap.findClassEvent += CLASS_TAG to {
             val list = it.findClass {
                 searchPackages = listOf("com.dragon.read")
                 matcher {
@@ -26,25 +26,25 @@ object PrivilegeManagerHook : BaseHook() {
 
             val clz = list.first().getInstance(EzXHelper.classLoader)
 
-            CLASS_TAG to clz
+            clz
         }
 
-        MethodMap.findMethodEvent += {
+        MethodMap.findMethodEvent += NO_AD_METHOD_TAG to {
             val clz = ClassMap.getClass(CLASS_TAG)!!
             val m = MethodFinder.fromClass(clz).first {
                 name == "isNoAd" && isNative
             }
 
-            NO_AD_METHOD_TAG to m
+            m
         }
 
-        MethodMap.findMethodEvent += {
+        MethodMap.findMethodEvent += HAS_DOWNLOAD_PRIV_METHOD_TAG to {
             val clz = ClassMap.getClass(CLASS_TAG)!!
             val m = MethodFinder.fromClass(clz).first {
                 name == "hasBookDownloadPrivilege"
             }
 
-            HAS_DOWNLOAD_PRIV_METHOD_TAG to m
+            m
         }
     }
 
